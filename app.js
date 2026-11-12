@@ -35,7 +35,7 @@ const API = location.hostname.endsWith('github.io') ? 'https://forge.taila06702.
 const fmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
 let PROJECTS = [], ORDER = {}, STATE = { totals: {}, mine: {}, left: 10, budget: 10, voters: 0 };
-let filtre = 'all', recherche = '', tri = 'random';
+let filtre = 'all', recherche = '', tri = 'random', mesVotes = false;
 const cartes = new Map();
 
 function melange() {
@@ -169,6 +169,9 @@ function majPortefeuille() {
   for (let i = 0; i < STATE.budget; i++) d.append(el('i', i < STATE.left ? '' : 'used'));
   $('#left-label').textContent = STATE.left === 0 ? 'All 10 points placed' : `${STATE.left} point${STATE.left > 1 ? 's' : ''} left`;
   for (const id of cartes.keys()) majCarte(id);
+  // "My votes" button: how many projects hold this visitor's points
+  const n = Object.values(STATE.mine).filter((v) => v > 0).length;
+  $('#mine-label').textContent = n ? `My votes (${n})` : 'My votes';
 }
 
 function toast(msg) {
@@ -185,13 +188,14 @@ async function voter(id, delta) {
     if (r.status === 409) toast(delta > 0 ? 'No points left: take one back from another project first.' : 'Nothing to take back here.');
     else if (r.status === 429) toast('Easy there, try again in a few seconds.');
     else if (!r.ok) toast('Vote not saved, please retry.');
-    if (tri === 'points' || tri === 'mine') rendu();
+    if (tri === 'points' || tri === 'mine' || mesVotes) rendu();
   } catch (e) {
     toast('Vote not saved: the server did not answer.');
   }
 }
 
 function correspond(p) {
+  if (mesVotes && !(STATE.mine[p.id] > 0)) return false;
   if (filtre !== 'all' && p.category !== filtre) return false;
   if (!recherche) return true;
   const h = `${p.title} ${p.author} ${p.description} ${(p.aka || []).join(' ')} ${CAT_LABEL[p.category]}`.toLowerCase();
@@ -210,7 +214,10 @@ function rendu() {
   liste.sort(cmp);
   const g = $('#grid');
   g.replaceChildren(...liste.map((p) => cartes.get(p.id).c));
-  $('#count').textContent = `${liste.length} project${liste.length > 1 ? 's' : ''}${filtre !== 'all' ? ` in ${CAT_LABEL[filtre]}` : ''}`;
+  $('#count').textContent = `${liste.length} project${liste.length > 1 ? 's' : ''}${mesVotes ? ' you gave points to' : ''}${filtre !== 'all' ? ` in ${CAT_LABEL[filtre]}` : ''}`;
+  $('#empty').textContent = mesVotes && !Object.values(STATE.mine).some((v) => v > 0)
+    ? 'You have not given any points yet. Use the + button on a project you like.'
+    : mesVotes ? 'None of the projects you voted for matches this filter.' : 'No project matches this search.';
   $('#empty').hidden = liste.length > 0;
 }
 
@@ -254,6 +261,12 @@ async function demarre() {
   let h;
   $('#q').addEventListener('input', (e) => { clearTimeout(h); h = setTimeout(() => { recherche = e.target.value.trim().toLowerCase(); rendu(); }, 120); });
   $('#sort').addEventListener('change', (e) => { tri = e.target.value; rendu(); });
+  $('#mine').addEventListener('click', (e) => {
+    mesVotes = !mesVotes;
+    e.currentTarget.setAttribute('aria-pressed', String(mesVotes));
+    rendu();
+    window.scrollTo({ top: 0, behavior: CALME ? 'auto' : 'smooth' });
+  });
   $('#reshuffle').addEventListener('click', () => { melange(); tri = 'random'; $('#sort').value = 'random'; rendu(); });
   setInterval(async () => {
     try {
