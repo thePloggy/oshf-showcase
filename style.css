@@ -137,3 +137,10 @@ main { padding-top: 16px; }
 .mine-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .mine-btn[aria-pressed="true"] svg { fill: currentColor; }
 .no-votes .mine-btn { display: none; }
+
+/* Classement : lecture de gauche à droite (grille en lignes) et place affichée sur la carte */
+.grid.rangs { columns: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; align-items: start; }
+.grid.rangs .card { margin: 0; }
+.shot .rank { position: absolute; right: 10px; top: 10px; min-width: 38px; text-align: center; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 14px; padding: 4px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 10px rgba(0, 0, 0, .4); }
+.shot .rank[hidden] { display: none; }
+.wallet { flex-wrap: wrap; }

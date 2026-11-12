@@ -35,7 +35,7 @@ const API = location.hostname.endsWith('github.io') ? 'https://forge.taila06702.
 const fmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
 let PROJECTS = [], ORDER = {}, STATE = { totals: {}, mine: {}, left: 10, budget: 10, voters: 0 };
-let filtre = 'all', recherche = '', tri = 'random', mesVotes = false;
+let filtre = 'all', recherche = '', tri = 'random', mesVotes = false, classement = false;
 const cartes = new Map();
 
 function melange() {
@@ -105,6 +105,8 @@ function carte(p) {
     shot.setAttribute('aria-hidden', 'true');
   }
   shot.append(el('span', 'tag', CAT_LABEL[p.category] || p.category));
+  const rang = el('span', 'rank'); rang.hidden = true;
+  shot.append(rang);
   c.append(shot);
 
   const b = el('div', 'body');
@@ -146,7 +148,7 @@ function carte(p) {
   v.append(tot, step);
   b.append(v);
   c.append(b);
-  cartes.set(p.id, { c, tot, out, moins, plus });
+  cartes.set(p.id, { c, tot, out, moins, plus, rang });
   return c;
 }
 
@@ -188,7 +190,7 @@ async function voter(id, delta) {
     if (r.status === 409) toast(delta > 0 ? 'No points left: take one back from another project first.' : 'Nothing to take back here.');
     else if (r.status === 429) toast('Easy there, try again in a few seconds.');
     else if (!r.ok) toast('Vote not saved, please retry.');
-    if (tri === 'points' || tri === 'mine' || mesVotes) rendu();
+    if (tri === 'points' || tri === 'mine' || mesVotes || classement) rendu();
   } catch (e) {
     toast('Vote not saved: the server did not answer.');
   }
@@ -212,9 +214,22 @@ function rendu() {
     az: (a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }),
   }[tri];
   liste.sort(cmp);
+  // Ranking: place of each project among ALL projects, by points; equal points share a place
+  const places = {};
+  if (classement) {
+    const tous = PROJECTS.map((p) => STATE.totals[p.id] || 0).filter((n) => n > 0).sort((a, b) => b - a);
+    for (const p of PROJECTS) { const n = STATE.totals[p.id] || 0; if (n > 0) places[p.id] = tous.indexOf(n) + 1; }
+  }
+  for (const [id, k] of cartes) {
+    k.rang.hidden = !places[id];
+    if (places[id]) { k.rang.textContent = `#${places[id]}`; k.rang.setAttribute('aria-label', `Ranked ${places[id]}`); }
+  }
   const g = $('#grid');
+  g.classList.toggle('rangs', classement);
   g.replaceChildren(...liste.map((p) => cartes.get(p.id).c));
-  $('#count').textContent = `${liste.length} project${liste.length > 1 ? 's' : ''}${mesVotes ? ' you gave points to' : ''}${filtre !== 'all' ? ` in ${CAT_LABEL[filtre]}` : ''}`;
+  const avecPoints = liste.filter((p) => (STATE.totals[p.id] || 0) > 0).length;
+  $('#count').textContent = `${liste.length} project${liste.length > 1 ? 's' : ''}${mesVotes ? ' you gave points to' : ''}${filtre !== 'all' ? ` in ${CAT_LABEL[filtre]}` : ''}`
+    + (classement ? ` · ranked by points, ${avecPoints} with at least one point, ${STATE.voters || 0} voter${STATE.voters === 1 ? '' : 's'} so far` : '');
   $('#empty').textContent = mesVotes && !Object.values(STATE.mine).some((v) => v > 0)
     ? 'You have not given any points yet. Use the + button on a project you like.'
     : mesVotes ? 'None of the projects you voted for matches this filter.' : 'No project matches this search.';
@@ -260,18 +275,29 @@ async function demarre() {
   rendu();
   let h;
   $('#q').addEventListener('input', (e) => { clearTimeout(h); h = setTimeout(() => { recherche = e.target.value.trim().toLowerCase(); rendu(); }, 120); });
-  $('#sort').addEventListener('change', (e) => { tri = e.target.value; rendu(); });
+  const reglerClassement = (on) => {
+    classement = on;
+    $('#rank').setAttribute('aria-pressed', String(on));
+    tri = on ? 'points' : 'random';
+    $('#sort').value = tri;
+  };
+  $('#sort').addEventListener('change', (e) => { tri = e.target.value; if (classement && tri !== 'points') { classement = false; $('#rank').setAttribute('aria-pressed', 'false'); } rendu(); });
+  $('#rank').addEventListener('click', () => {
+    reglerClassement(!classement);
+    rendu();
+    window.scrollTo({ top: 0, behavior: CALME ? 'auto' : 'smooth' });
+  });
   $('#mine').addEventListener('click', (e) => {
     mesVotes = !mesVotes;
     e.currentTarget.setAttribute('aria-pressed', String(mesVotes));
     rendu();
     window.scrollTo({ top: 0, behavior: CALME ? 'auto' : 'smooth' });
   });
-  $('#reshuffle').addEventListener('click', () => { melange(); tri = 'random'; $('#sort').value = 'random'; rendu(); });
+  $('#reshuffle').addEventListener('click', () => { melange(); reglerClassement(false); rendu(); });
   setInterval(async () => {
     try {
       const r = await fetch(API + '/api/state');
-      if (r.ok) { STATE = await r.json(); document.body.classList.remove('no-votes'); majPortefeuille(); }
+      if (r.ok) { STATE = await r.json(); document.body.classList.remove('no-votes'); majPortefeuille(); if (classement) rendu(); }
     } catch (e) { /* hors ligne */ }
   }, 30000);
 }
