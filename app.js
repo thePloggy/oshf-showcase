@@ -67,13 +67,37 @@ function initiales(t) {
   return t.replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('') || '?';
 }
 
+// Les animations ne jouent que dans la zone visible ; avec « réduire les animations », seule l'affiche est montrée.
+const CALME = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const VUES = new IntersectionObserver((entrees) => {
+  for (const e of entrees) {
+    const v = e.target;
+    if (e.isIntersecting && !CALME) {
+      if (!v.src) v.src = v.dataset.src;
+      v.play().catch(() => {});
+    } else if (!v.paused) v.pause();
+  }
+}, { rootMargin: '200px 0px', threshold: 0.15 });
+
 function carte(p) {
   const c = el('article', 'card');
   c.dataset.id = p.id;
   const shot = el('div', 'shot' + (p.shot ? '' : ' none'));
-  if (p.shot) {
+  if (p.shot && p.anim) {
+    // animation du projet : courte vidéo muette en boucle, lancée seulement quand la carte est à l'écran
+    const v = el('video');
+    v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+    v.poster = p.shot.src; v.dataset.src = p.anim;
+    v.width = p.shot.w; v.height = p.shot.h;
+    v.setAttribute('aria-label', `Animated preview of ${p.title}`);
+    v.title = `Animation from the ${p.title} repository, by ${p.author}`;
+    shot.append(v);
+    VUES.observe(v);
+  } else if (p.shot) {
     const img = el('img');
-    img.src = p.shot.src; img.alt = `Screenshot of ${p.title}`; img.title = `Image from the ${p.title} README, by ${p.author}`; img.loading = 'lazy'; img.decoding = 'async';
+    img.src = p.shot.src; img.alt = `Screenshot of ${p.title}`;
+    img.title = p.shot_kind === 'capture_github' ? `GitHub page of ${p.title}` : `Image from the ${p.title} README, by ${p.author}`;
+    img.loading = 'lazy'; img.decoding = 'async';
     img.width = p.shot.w; img.height = p.shot.h;
     shot.append(img);
   } else {
@@ -216,7 +240,7 @@ async function demarre() {
   for (const p of PROJECTS) carte(p);
   puces();
   const date = new Date(d.updated.replace(/(\d{2})(\d{2})$/, '$1:$2'));
-  $('#foot').textContent = `${PROJECTS.length} projects from the three #OpenSourceHiggsfield submission threads (duplicate links merged). Stars, forks and release downloads from the GitHub API; installs from the Comfy Registry; snapshot of ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}. Screenshots are reduced copies of an image from each project's README, credited to and linked with that project; to have yours removed or changed, open an issue on github.com/thePloggy/oshf-showcase. Categories are indicative. One vote budget of 10 points per IP address. Visits are counted anonymously (no cookies, no raw IP stored).`;
+  $('#foot').textContent = `${PROJECTS.length} projects from the three #OpenSourceHiggsfield submission threads (duplicate links merged). Stars, forks and release downloads from the GitHub API; installs from the Comfy Registry; snapshot of ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}. Previews are reduced copies of a GIF or an image from each project's repository (or a capture of its GitHub page when it has none), credited to and linked with that project; to have yours removed or changed, open an issue on github.com/thePloggy/oshf-showcase. Categories are indicative. One vote budget of 10 points per IP address. Visits are counted anonymously (no cookies, no raw IP stored).`;
   try {
     const r = await fetch(API + '/api/state?visit=1');
     if (!r.ok) throw new Error(r.status);
