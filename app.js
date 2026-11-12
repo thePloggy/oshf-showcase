@@ -262,10 +262,4 @@ async function demarre() {
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && nav.scrollWidth > nav.clientWidth) { nav.scrollLeft += e.deltaY; e.preventDefault(); }
   }, { passive: false });
 })();
-// barre d'annonce : fermeture mémorisée
-(() => {
-  const b = $('#topbar');
-  try { if (localStorage.getItem('oshf-topbar-closed') === '1') b.hidden = true; } catch (e) { /* stockage indisponible */ }
-  $('#topbar-x').addEventListener('click', () => { b.hidden = true; try { localStorage.setItem('oshf-topbar-closed', '1'); } catch (e) { /* idem */ } });
-})();
 demarre();

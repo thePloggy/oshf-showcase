@@ -108,13 +108,15 @@ main { padding-top: 16px; }
 /* vote indisponible : la vitrine reste lisible */
 .no-votes .stepper, .no-votes .dots { display: none; }
 
-/* barre d'annonce tout en haut */
-.topbar { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px 12px; flex-wrap: wrap; padding: 8px 44px 8px 16px; font-size: 13.5px; text-align: center; color: var(--text); background: linear-gradient(90deg, rgba(242, 201, 76, .20), rgba(242, 201, 76, .08)); border-bottom: 1px solid rgba(242, 201, 76, .3); }
-.topbar[hidden] { display: none; }
-.pill { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 5px 14px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .15s, transform .15s; }
-.pill:hover { background: #ffd95e; transform: translateY(-1px); }
-.topbar-x { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; transition: color .15s, background .15s; }
-.topbar-x:hover { color: var(--text); background: rgba(255, 255, 255, .08); }
+/* CTA tout en haut : barre pleine largeur, fond plus sombre que la page, texte et bouton centrés */
+.topbar { display: flex; align-items: center; justify-content: center; gap: 12px 20px; flex-wrap: wrap; padding: 14px 16px; text-align: center; background: #050608; border-bottom: 1px solid var(--line); }
+.topbar-text { margin: 0; font-size: 15px; color: var(--muted); }
+.topbar-text strong { color: var(--text); font-weight: 600; }
+.topbar-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 22px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .15s, transform .15s, box-shadow .15s; box-shadow: 0 4px 16px rgba(242, 201, 76, .22); }
+.topbar-btn svg { font-size: 18px; }
+.topbar-btn:hover { background: #ffd95e; transform: translateY(-1px); box-shadow: 0 6px 22px rgba(242, 201, 76, .34); }
+.topbar-btn:active { transform: translateY(1px); }
+@media (max-width: 640px) { .topbar-btn { width: 100%; } }
 
 /* filtres : défilement par cliquer-glisser et barre de défilement aux couleurs de la page */
 .chips { cursor: grab; user-select: none; -webkit-user-select: none; padding-bottom: 10px; overscroll-behavior-x: contain; }
