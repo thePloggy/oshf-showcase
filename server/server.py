@@ -71,6 +71,9 @@ class H(SimpleHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.send_header('Access-Control-Max-Age', '600')
+            # machines du tailnet : forge y a une adresse privée ; Chrome demande alors l'accès au réseau local
+            if self.headers.get('Access-Control-Request-Private-Network'):
+                self.send_header('Access-Control-Allow-Private-Network', 'true')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
