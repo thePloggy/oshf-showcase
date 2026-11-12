@@ -238,4 +238,34 @@ async function demarre() {
     } catch (e) { /* hors ligne */ }
   }, 30000);
 }
+// filtres : cliquer-glisser pour faire défiler la rangée (souris) ; le tactile garde son défilement natif
+(() => {
+  const nav = $('#chips');
+  let x0 = 0, s0 = 0, actif = false, bouge = false;
+  nav.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    actif = true; bouge = false; x0 = e.clientX; s0 = nav.scrollLeft;
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!actif) return;
+    const dx = e.clientX - x0;
+    if (!bouge && Math.abs(dx) > 5) { bouge = true; nav.classList.add('drag'); }
+    if (bouge) nav.scrollLeft = s0 - dx;
+  });
+  const fin = () => { if (!actif) return; actif = false; setTimeout(() => nav.classList.remove('drag'), 0); };
+  window.addEventListener('pointerup', fin);
+  window.addEventListener('pointercancel', fin);
+  // un glissement ne doit pas compter comme un clic sur un filtre
+  nav.addEventListener('click', (e) => { if (bouge) { e.stopPropagation(); e.preventDefault(); bouge = false; } }, true);
+  // molette verticale = défilement horizontal de la rangée
+  nav.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && nav.scrollWidth > nav.clientWidth) { nav.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
+})();
+// barre d'annonce : fermeture mémorisée
+(() => {
+  const b = $('#topbar');
+  try { if (localStorage.getItem('oshf-topbar-closed') === '1') b.hidden = true; } catch (e) { /* stockage indisponible */ }
+  $('#topbar-x').addEventListener('click', () => { b.hidden = true; try { localStorage.setItem('oshf-topbar-closed', '1'); } catch (e) { /* idem */ } });
+})();
 demarre();
