@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#OpenSourceHiggsfield — community showcase</title>
+<meta name="description" content="Every #OpenSourceHiggsfield submission in one place: screenshots, demos, stars, and a 10-point community vote.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https://forge.taila06702.ts.net:10000; base-uri 'none'; form-action 'none'">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Unofficial community page · not affiliated with Comfy Org</p>
+    <h1>#OpenSourceHiggsfield<span class="dim"> — every submission</span></h1>
+    <p class="lede" id="lede">Browse the projects in random order, filter by what they do, and spend your <strong>10 points</strong> on the ones you like. Put them all on one project or spread them out; you can take points back at any time.</p>
+  </div>
+</header>
+
+<div class="bar" id="bar">
+  <div class="wrap bar-inner">
+    <div class="wallet" aria-live="polite">
+      <span class="dots" id="dots" aria-hidden="true"></span>
+      <span id="left-label">10 points left</span>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" type="search" placeholder="Search a project, an author, a model…" autocomplete="off">
+    </label>
+    <div class="sort">
+      <label for="sort" class="sr">Sort</label>
+      <select id="sort">
+        <option value="random">Random order</option>
+        <option value="points">Most points</option>
+        <option value="stars">Most GitHub stars</option>
+        <option value="mine">My votes first</option>
+        <option value="az">A → Z</option>
+      </select>
+      <button id="reshuffle" class="icon-btn" type="button" title="Shuffle again" aria-label="Shuffle again">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="wrap chips" id="chips" aria-label="Filter by function"></nav>
+</div>
+
+<main class="wrap">
+  <p class="count" id="count"></p>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No project matches this search.</p>
+</main>
+
+<footer class="wrap foot">
+  <p id="foot"></p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

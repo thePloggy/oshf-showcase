@@ -1,0 +1,5 @@
+data/
+*.db
+*.db-*
+sel.bin
+__pycache__/
