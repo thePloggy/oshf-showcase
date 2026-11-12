@@ -216,9 +216,9 @@ async function demarre() {
   for (const p of PROJECTS) carte(p);
   puces();
   const date = new Date(d.updated.replace(/(\d{2})(\d{2})$/, '$1:$2'));
-  $('#foot').textContent = `${PROJECTS.length} projects from the three #OpenSourceHiggsfield submission threads (duplicate links merged). Stars, forks and release downloads from the GitHub API; installs from the Comfy Registry; snapshot of ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}. Screenshots are reduced copies of an image from each project's README, credited to and linked with that project; to have yours removed or changed, open an issue on github.com/thePloggy/oshf-showcase. Categories are indicative. One vote budget of 10 points per IP address.`;
+  $('#foot').textContent = `${PROJECTS.length} projects from the three #OpenSourceHiggsfield submission threads (duplicate links merged). Stars, forks and release downloads from the GitHub API; installs from the Comfy Registry; snapshot of ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}. Screenshots are reduced copies of an image from each project's README, credited to and linked with that project; to have yours removed or changed, open an issue on github.com/thePloggy/oshf-showcase. Categories are indicative. One vote budget of 10 points per IP address. Visits are counted anonymously (no cookies, no raw IP stored).`;
   try {
-    const r = await fetch(API + '/api/state');
+    const r = await fetch(API + '/api/state?visit=1');
     if (!r.ok) throw new Error(r.status);
     STATE = await r.json();
   } catch (e) {
