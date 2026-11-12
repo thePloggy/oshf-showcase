@@ -107,3 +107,10 @@ main { padding-top: 16px; }
 
 /* vote indisponible : la vitrine reste lisible */
 .no-votes .stepper, .no-votes .dots { display: none; }
+
+/* appel à contribution */
+.cta { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 22px; padding: 16px 26px; background: var(--accent); color: var(--accent-ink); border-radius: 14px; font-size: 20px; font-weight: 700; text-decoration: none; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; box-shadow: 0 6px 24px rgba(242, 201, 76, .22); }
+.cta svg { font-size: 22px; }
+.cta:hover { background: #ffd95e; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(242, 201, 76, .32); }
+.cta-sub { font-size: 14px; font-weight: 500; opacity: .8; }
+@media (max-width: 640px) { .cta { display: flex; font-size: 18px; padding: 14px 18px; } .cta-sub { flex-basis: 100%; } }
