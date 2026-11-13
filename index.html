@@ -9,7 +9,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="favicon-180.png">
-<link rel="stylesheet" href="style.css?v=49177a55">
+<link rel="stylesheet" href="style.css?v=4141083c">
 </head>
 <body>
 <div class="topbar" role="region" aria-label="Suggest an update">
@@ -52,6 +52,7 @@
         <option value="points">Most points</option>
         <option value="stars">Most GitHub stars</option>
         <option value="mine">My votes first</option>
+        <option value="cost">Free &amp; local first</option>
         <option value="az">A → Z</option>
       </select>
       <button id="reshuffle" class="icon-btn" type="button" title="Shuffle again" aria-label="Shuffle again">
@@ -60,9 +61,15 @@
     </div>
   </div>
   <nav class="wrap chips" id="chips" aria-label="Filter by function"></nav>
+  <nav class="wrap chips cost-chips" id="cost-chips" aria-label="Filter by cost: free and local, or paid API"></nav>
 </div>
 
 <main class="wrap">
+  <section class="cost-stats" aria-label="Free and local versus paid API, across all projects">
+    <div class="cost-bar" id="cost-bar" role="img" aria-label="Share of projects by cost level"></div>
+    <p class="cost-legend" id="cost-legend"></p>
+    <p class="cost-note" id="cost-note"></p>
+  </section>
   <p class="count" id="count"></p>
   <div class="grid" id="grid"></div>
   <p class="empty" id="empty" hidden>No project matches this search.</p>
@@ -73,6 +80,6 @@
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="app.js?v=49177a55"></script>
+<script src="app.js?v=4141083c"></script>
 </body>
 </html>

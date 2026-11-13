@@ -144,3 +144,30 @@ main { padding-top: 16px; }
 .shot .rank { position: absolute; right: 10px; top: 10px; min-width: 38px; text-align: center; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 14px; padding: 4px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 10px rgba(0, 0, 0, .4); }
 .shot .rank[hidden] { display: none; }
 .wallet { flex-wrap: wrap; }
+
+/* Coût : pastille sur la carte, filtres et statistique globale */
+:root { --c-local: #7ee0a1; --c-option: #6cc9e0; --c-mixte: #f2b84c; --c-api: #ff8f7a; --c-inconnu: #8a909c; }
+.cost { display: inline-flex; align-items: center; font: inherit; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; margin: 0 0 8px; border: 1px solid; cursor: pointer; transition: filter .15s; }
+.cost:hover { filter: brightness(1.2); }
+.toast { max-width: min(560px, calc(100% - 32px)); text-align: center; }
+.cost-local { color: var(--c-local); border-color: rgba(126, 224, 161, .45); background: rgba(126, 224, 161, .08); }
+.cost-local_option { color: var(--c-option); border-color: rgba(108, 201, 224, .45); background: rgba(108, 201, 224, .08); }
+.cost-mixte { color: var(--c-mixte); border-color: rgba(242, 184, 76, .45); background: rgba(242, 184, 76, .08); }
+.cost-api { color: var(--c-api); border-color: rgba(255, 143, 122, .45); background: rgba(255, 143, 122, .08); }
+.cost-inconnu { color: var(--c-inconnu); border-color: #3a3f4a; background: transparent; }
+.cost-chips { padding-top: 0; }
+.cost-chips .chip-free[aria-pressed="true"] { background: var(--c-local); border-color: var(--c-local); color: #062a14; }
+.cost-chips .chip-paid[aria-pressed="true"] { background: var(--c-api); border-color: var(--c-api); color: #2e0a04; }
+.cost-chips .chip-inconnu[aria-pressed="true"] { background: var(--c-inconnu); border-color: var(--c-inconnu); color: #111; }
+.cost-stats { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin: 0 0 16px; }
+.cost-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--panel-2); }
+.cost-bar .seg { display: block; min-width: 4px; }
+.seg.cost-local, .sw.cost-local { background: var(--c-local); }
+.seg.cost-local_option, .sw.cost-local_option { background: var(--c-option); }
+.seg.cost-mixte, .sw.cost-mixte { background: var(--c-mixte); }
+.seg.cost-api, .sw.cost-api { background: var(--c-api); }
+.seg.cost-inconnu, .sw.cost-inconnu { background: var(--c-inconnu); }
+.cost-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 6px; font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums; }
+.cost-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cost-legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; border: 0; padding: 0; }
+.cost-note { margin: 0; color: var(--muted); font-size: 13px; }

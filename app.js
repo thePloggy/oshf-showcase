@@ -17,6 +17,34 @@ const CATS = [
   ['other', 'Other / repo unavailable'],
 ];
 const CAT_LABEL = Object.fromEntries(CATS);
+// Coût d'utilisation, détecté automatiquement dans chaque dépôt (workflows ComfyUI, README, fichiers d'exemple de configuration)
+const COST_FILTERS = [
+  ['all', 'Any cost'],
+  ['free', 'Runs free, locally'],
+  ['paid', 'Needs a paid API'],
+  ['inconnu', 'Not determined'],
+];
+const COST_GROUP = { local: 'free', local_option: 'free', mixte: 'paid', api: 'paid', inconnu: 'inconnu' };
+const COST_ORDER = { local: 0, local_option: 1, mixte: 2, api: 3, inconnu: 4 };
+function costLabel(c) {
+  const pc = c.part != null ? Math.round(c.part * 100) : null;
+  switch (c.v) {
+    case 'local': return '100% local';
+    case 'local_option': return 'Local · paid cloud optional';
+    case 'mixte': return pc ? `${pc}% paid-API recipes` : 'Local recipes + paid API key';
+    case 'api': return c.rec ? '100% paid-API recipes' : 'Paid API required';
+    default: return 'Cost not determined';
+  }
+}
+function costWhy(c) {
+  if (c.why) return c.why;
+  const parts = [];
+  if (c.rec != null) parts.push(`${c.rec} ComfyUI workflow${c.rec === 1 ? '' : 's'} read, ${c.api || 0} using paid API nodes`);
+  if (c.nodes && c.nodes.length) parts.push(`paid nodes: ${c.nodes.join(', ')}`);
+  if (c.keys && c.keys.length) parts.push(`API keys mentioned: ${c.keys.join(', ')}`);
+  if (!parts.length) parts.push('no ComfyUI workflow and no API key found in the repository');
+  return parts.join(' · ') + '. Automatic detection, indicative.';
+}
 const ICON = {
   star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
   fork: '<circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/>',
@@ -35,7 +63,7 @@ const API = location.hostname.endsWith('github.io') ? 'https://forge.taila06702.
 const fmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
 let PROJECTS = [], ORDER = {}, STATE = { totals: {}, mine: {}, left: 10, budget: 10, voters: 0 };
-let filtre = 'all', recherche = '', tri = 'random', mesVotes = false, classement = false;
+let filtre = 'all', filtreCout = 'all', recherche = '', tri = 'random', mesVotes = false, classement = false;
 const cartes = new Map();
 
 function melange() {
@@ -114,6 +142,15 @@ function carte(p) {
   b.append(el('p', 'author', `by ${p.author}`));
   if (p.aka && p.aka.length) b.append(el('p', 'aka', `Also submitted as ${p.aka.join(', ')}`));
   if (!p.found) b.append(el('span', 'missing', 'Repository not reachable on 12 Nov 2026'));
+  if (p.cost) {
+    // bouton : survol (ordinateur) ou toucher (mobile) pour voir d'où vient le verdict
+    const pill = el('button', `cost cost-${p.cost.v}`, costLabel(p.cost));
+    pill.type = 'button';
+    pill.title = costWhy(p.cost);
+    pill.setAttribute('aria-label', `${costLabel(p.cost)}. ${costWhy(p.cost)}`);
+    pill.addEventListener('click', () => toast(costWhy(p.cost), 6000));
+    b.append(pill);
+  }
   if (p.description) b.append(el('p', 'desc', p.description));
 
   const st = el('div', 'stats');
@@ -176,10 +213,10 @@ function majPortefeuille() {
   $('#mine-label').textContent = n ? `My votes (${n})` : 'My votes';
 }
 
-function toast(msg) {
+function toast(msg, ms = 2200) {
   const t = $('#toast');
   t.textContent = msg; t.classList.add('on');
-  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200);
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms);
 }
 
 async function voter(id, delta) {
@@ -199,6 +236,7 @@ async function voter(id, delta) {
 function correspond(p) {
   if (mesVotes && !(STATE.mine[p.id] > 0)) return false;
   if (filtre !== 'all' && p.category !== filtre) return false;
+  if (filtreCout !== 'all' && COST_GROUP[p.cost?.v || 'inconnu'] !== filtreCout) return false;
   if (!recherche) return true;
   const h = `${p.title} ${p.author} ${p.description} ${(p.aka || []).join(' ')} ${CAT_LABEL[p.category]}`.toLowerCase();
   return recherche.split(/\s+/).every((w) => h.includes(w));
@@ -212,6 +250,7 @@ function rendu() {
     stars: (a, b) => (b.stars || 0) - (a.stars || 0) || ORDER[a.id] - ORDER[b.id],
     mine: (a, b) => (STATE.mine[b.id] || 0) - (STATE.mine[a.id] || 0) || ORDER[a.id] - ORDER[b.id],
     az: (a, b) => a.title.localeCompare(b.title, 'en', { sensitivity: 'base' }),
+    cost: (a, b) => COST_ORDER[a.cost?.v || 'inconnu'] - COST_ORDER[b.cost?.v || 'inconnu'] || (a.cost?.part || 0) - (b.cost?.part || 0) || ORDER[a.id] - ORDER[b.id],
   }[tri];
   liste.sort(cmp);
   // Ranking: place of each project among ALL projects, by points; equal points share a place
@@ -229,6 +268,7 @@ function rendu() {
   g.replaceChildren(...liste.map((p) => cartes.get(p.id).c));
   const avecPoints = liste.filter((p) => (STATE.totals[p.id] || 0) > 0).length;
   $('#count').textContent = `${liste.length} project${liste.length > 1 ? 's' : ''}${mesVotes ? ' you gave points to' : ''}${filtre !== 'all' ? ` in ${CAT_LABEL[filtre]}` : ''}`
+    + (filtreCout !== 'all' ? ` · ${COST_FILTERS.find((f) => f[0] === filtreCout)[1].toLowerCase()}` : '')
     + (classement ? ` · ranked by points, ${avecPoints} with at least one point, ${STATE.voters || 0} voter${STATE.voters === 1 ? '' : 's'} so far` : '');
   $('#empty').textContent = mesVotes && !Object.values(STATE.mine).some((v) => v > 0)
     ? 'You have not given any points yet. Use the + button on a project you like.'
@@ -255,12 +295,53 @@ function puces() {
   }
 }
 
+function filtresCout() {
+  const n = { all: PROJECTS.length, free: 0, paid: 0, inconnu: 0 };
+  for (const p of PROJECTS) n[COST_GROUP[p.cost?.v || 'inconnu']]++;
+  const nav = $('#cost-chips');
+  for (const [k, label] of COST_FILTERS) {
+    const b = el('button', `chip chip-${k}`); b.type = 'button';
+    b.setAttribute('aria-pressed', String(k === filtreCout));
+    b.append(document.createTextNode(label));
+    b.append(el('span', 'n', String(n[k])));
+    b.addEventListener('click', () => {
+      filtreCout = k;
+      nav.querySelectorAll('.chip').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      rendu();
+    });
+    nav.append(b);
+  }
+  // statistique globale : part de projets par niveau de coût, et part des workflows lus qui appellent une API payante
+  const ordre = ['local', 'local_option', 'mixte', 'api', 'inconnu'];
+  const nom = { local: '100% local', local_option: 'local, paid cloud optional', mixte: 'partly paid API', api: 'paid API required', inconnu: 'not determined' };
+  const c = Object.fromEntries(ordre.map((k) => [k, PROJECTS.filter((p) => (p.cost?.v || 'inconnu') === k).length]));
+  const tot = PROJECTS.length;
+  const pc = (x) => Math.round((100 * x) / tot);
+  const barre = $('#cost-bar');
+  barre.replaceChildren(...ordre.filter((k) => c[k]).map((k) => {
+    const s = el('span', `seg cost-${k}`);
+    s.style.flexGrow = String(c[k]);
+    s.title = `${c[k]} projects — ${nom[k]}`;
+    return s;
+  }));
+  const rec = PROJECTS.reduce((a, p) => a + (p.cost?.rec || 0), 0);
+  const recApi = PROJECTS.reduce((a, p) => a + (p.cost?.api || 0), 0);
+  const leg = $('#cost-legend');
+  leg.replaceChildren(...ordre.filter((k) => c[k]).map((k) => {
+    const s = el('span', '');
+    s.append(el('i', `sw cost-${k}`), document.createTextNode(`${pc(c[k])}% ${nom[k]}`));
+    return s;
+  }));
+  $('#cost-note').textContent = `${pc(c.local + c.local_option)}% of the projects run free on your own GPU. Of the ${rec.toLocaleString('en')} ComfyUI workflows found in the repositories, ${recApi.toLocaleString('en')} (${Math.round((100 * recApi) / Math.max(rec, 1))}%) call a paid API (Kling, Seedance, Gemini, Veo, OpenAI…). Detected automatically from each repository; hover or tap a card's badge to see why.`;
+}
+
 async function demarre() {
   const d = await (await fetch('projects.json')).json();
   PROJECTS = d.projects;
   melange();
   for (const p of PROJECTS) carte(p);
   puces();
+  filtresCout();
   const date = new Date(d.updated.replace(/(\d{2})(\d{2})$/, '$1:$2'));
   $('#foot').textContent = `${PROJECTS.length} projects from the three #OpenSourceHiggsfield submission threads (duplicate links merged). Stars, forks and release downloads from the GitHub API; installs from the Comfy Registry; snapshot of ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}. Previews are reduced copies of a GIF or an image from each project's repository (or a capture of its GitHub page when it has none), credited to and linked with that project; to have yours removed or changed, open an issue on github.com/thePloggy/oshf-showcase. Categories are indicative. One vote budget of 10 points per IP address. Visits are counted anonymously (no cookies, no raw IP stored).`;
   try {
