@@ -155,7 +155,7 @@ main { padding-top: 16px; }
 .cost-mixte { color: var(--c-mixte); border-color: rgba(242, 184, 76, .45); background: rgba(242, 184, 76, .08); }
 .cost-api { color: var(--c-api); border-color: rgba(255, 143, 122, .45); background: rgba(255, 143, 122, .08); }
 .cost-inconnu { color: var(--c-inconnu); border-color: #3a3f4a; background: transparent; }
-.cost-chips { padding-top: 0; }
+.cost-chips { padding-top: 0; margin-top: 10px; }
 .cost-chips .chip-free[aria-pressed="true"] { background: var(--c-local); border-color: var(--c-local); color: #062a14; }
 .cost-chips .chip-paid[aria-pressed="true"] { background: var(--c-api); border-color: var(--c-api); color: #2e0a04; }
 .cost-chips .chip-inconnu[aria-pressed="true"] { background: var(--c-inconnu); border-color: var(--c-inconnu); color: #111; }
