@@ -62,6 +62,7 @@ const $ = (s) => document.querySelector(s);
 const API = location.hostname.endsWith('github.io') ? 'https://forge.taila06702.ts.net:10000' : '';
 const fmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
+let REPO_CHECKED = '';
 let PROJECTS = [], ORDER = {}, STATE = { totals: {}, mine: {}, left: 10, budget: 10, voters: 0 };
 let filtre = 'all', filtreCout = 'all', recherche = '', tri = 'random', mesVotes = false, classement = false;
 const cartes = new Map();
@@ -142,6 +143,8 @@ function carte(p) {
   b.append(el('p', 'author', `by ${p.author}`));
   if (p.aka && p.aka.length) b.append(el('p', 'aka', `Also submitted as ${p.aka.join(', ')}`));
   if (!p.found) b.append(el('span', 'missing', 'Repository not reachable on 12 Nov 2026'));
+  else if (p.repo_state === 'removed') b.append(el('span', 'missing', `Repository removed or made private since 12 Nov (checked ${REPO_CHECKED})`));
+  else if (p.repo_state === 'archived') b.append(el('span', 'missing archived', `Repository archived by its author (read-only)`));
   if (p.cost) {
     // bouton : survol (ordinateur) ou toucher (mobile) pour voir d'où vient le verdict
     const pill = el('button', `cost cost-${p.cost.v}`, costLabel(p.cost));
@@ -338,6 +341,7 @@ function filtresCout() {
 async function demarre() {
   const d = await (await fetch('projects.json')).json();
   PROJECTS = d.projects;
+  if (d.repo_checked) REPO_CHECKED = new Date(d.repo_checked).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   melange();
   for (const p of PROJECTS) carte(p);
   puces();

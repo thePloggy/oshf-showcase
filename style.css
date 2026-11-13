@@ -171,3 +171,6 @@ main { padding-top: 16px; }
 .cost-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .cost-legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; border: 0; padding: 0; }
 .cost-note { margin: 0; color: var(--muted); font-size: 13px; }
+
+.missing.archived { color: var(--muted); border-color: var(--line); }
+.card:has(.missing:not(.archived)) .links a:first-child { opacity: .5; text-decoration: line-through; }
